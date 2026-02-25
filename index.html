@@ -7,7 +7,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Kanit', sans-serif; background-color: #f8fafc; }
+        body { font-family: 'Kanit', sans-serif; background-color: #f1f5f9; }
         .spin { animation: spin 1s linear infinite; }
         @keyframes spin { 100% { transform: rotate(360deg); } }
         ::-webkit-scrollbar { width: 0px; background: transparent; }
@@ -15,57 +15,58 @@
 </head>
 <body class="min-h-screen flex items-center justify-center p-4">
 
-    <div class="max-w-md w-full bg-white rounded-3xl shadow-xl overflow-hidden border border-slate-100 flex flex-col">
+    <div class="max-w-md w-full bg-white rounded-[2rem] shadow-xl overflow-hidden border border-slate-100 flex flex-col">
         <!-- Header -->
-        <div class="bg-gradient-to-r from-emerald-500 to-teal-600 p-6 text-white text-center relative shrink-0">
-            <h1 class="text-xl font-bold mb-1 tracking-wide">ระบบตรวจสอบสิทธิ สปสช.</h1>
-            <p class="text-emerald-50 text-sm font-medium">Real-time Quota Tracker</p>
+        <div class="bg-gradient-to-br from-emerald-500 to-teal-600 p-8 text-white text-center relative shrink-0">
+            <div class="flex justify-center mb-4">
+                <div class="p-3 bg-white/20 rounded-2xl backdrop-blur-sm shadow-inner">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path><path d="m9 12 2 2 4-4"></path></svg>
+                </div>
+            </div>
+            <h1 class="text-2xl font-bold mb-1 tracking-wide">ระบบตรวจสอบสิทธิ สปสช.</h1>
+            <p class="text-emerald-50 text-sm font-medium opacity-90">Real-time Eligibility Check</p>
         </div>
 
         <!-- Content -->
-        <div class="p-6 overflow-y-auto">
-            <div class="mb-6 text-center">
-                <h2 id="serviceName" class="text-slate-800 font-semibold text-lg leading-tight mb-2">
+        <div class="p-8 overflow-y-auto">
+            <div class="mb-8 text-center">
+                <h2 id="serviceName" class="text-slate-800 font-bold text-lg leading-tight mb-3">
                     กำลังโหลดข้อมูล...
                 </h2>
-                <span class="inline-block px-3 py-1 bg-emerald-100 text-emerald-800 text-xs font-bold rounded-full shadow-sm">
+                <span class="inline-block px-4 py-1.5 bg-slate-100 text-slate-600 text-xs font-bold rounded-full border border-slate-200">
                     รหัส: PG0190010
                 </span>
             </div>
 
-            <!-- กล่องแสดงตัวเลขคงเหลือ -->
-            <div class="bg-slate-50 rounded-2xl p-8 text-center mb-6 border border-slate-100 relative shadow-inner">
-                <p class="text-slate-500 text-sm font-medium mb-4">จำนวนสิทธิคงเหลือของคุณ</p>
-                
-                <div id="loadingIndicator" class="flex justify-center py-4">
-                    <svg class="spin text-emerald-500" xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-6.219-8.56"></path></svg>
+            <!-- กล่องแสดงสถานะ -->
+            <div class="mb-8 relative">
+                <div id="loadingIndicator" class="flex flex-col items-center justify-center py-8">
+                    <svg class="spin text-emerald-500 mb-4" xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-6.219-8.56"></path></svg>
+                    <p class="text-slate-400 text-sm font-medium">กำลังเชื่อมต่อฐานข้อมูล...</p>
                 </div>
 
-                <div id="dataContainer" class="hidden flex-col items-center justify-center">
-                    <div class="flex items-baseline gap-2 justify-center">
-                        <span id="remainCount" class="text-6xl font-extrabold tracking-tighter text-emerald-600 drop-shadow-sm">
-                            0
-                        </span>
-                        <span class="text-xl font-bold text-emerald-600">สิทธิ</span>
-                    </div>
-                    <!-- ข้อความเสริม (เปลี่ยนสีตามจำนวนสิทธิ) -->
-                    <div id="statusMessage" class="mt-4 px-4 py-1.5 rounded-full text-sm font-bold bg-emerald-100 text-emerald-700">
-                        พร้อมรับบริการ
+                <div id="dataContainer" class="hidden">
+                    <!-- ป้ายสถานะ (จะถูกเปลี่ยนสีและไอคอนอัตโนมัติด้วย JavaScript) -->
+                    <div id="statusBadge" class="flex flex-col items-center justify-center gap-3 py-8 px-6 rounded-3xl transition-all duration-300">
+                        <div id="statusIcon"></div>
+                        <span id="statusText" class="text-3xl font-extrabold tracking-tight"></span>
                     </div>
                 </div>
             </div>
 
             <!-- กล่องแจ้งเตือน Error -->
-            <div id="errorWrapper" class="hidden mb-6 p-4 bg-rose-50 text-rose-800 rounded-xl text-sm border border-rose-200 flex items-start gap-2">
+            <div id="errorWrapper" class="hidden mb-6 p-4 bg-rose-50 text-rose-800 rounded-2xl text-sm border border-rose-200 flex items-start gap-3">
                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="shrink-0 mt-0.5"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
-                <p id="errorText" class="font-medium"></p>
+                <p id="errorText" class="font-medium leading-relaxed"></p>
             </div>
 
-            <div class="flex items-center justify-between mt-2 pt-4 border-t border-slate-100 shrink-0">
-                <div class="text-slate-400 text-xs font-medium">
+            <!-- Footer & Controls -->
+            <div class="flex items-center justify-between mt-4 pt-6 border-t border-slate-100 shrink-0">
+                <div class="text-slate-400 text-xs font-medium flex items-center gap-1.5">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
                     อัปเดต: <span id="lastUpdated">-</span>
                 </div>
-                <button onclick="fetchData()" id="refreshBtn" class="flex items-center gap-2 px-5 py-2.5 bg-emerald-500 text-white rounded-xl text-sm font-semibold hover:bg-emerald-600 active:scale-95 transition-all shadow-md">
+                <button onclick="fetchData()" id="refreshBtn" class="flex items-center gap-2 px-6 py-2.5 bg-slate-800 text-white rounded-xl text-sm font-semibold hover:bg-slate-700 active:scale-95 transition-all shadow-md">
                     <svg id="refreshIcon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path><path d="M3 3v5h5"></path></svg>
                     รีเฟรช
                 </button>
@@ -77,6 +78,7 @@
         const targetServiceCode = 'PG0190010';
         
         async function fetchData() {
+            // เซ็ตสถานะตอนกำลังโหลด
             document.getElementById('loadingIndicator').classList.remove('hidden');
             document.getElementById('dataContainer').classList.add('hidden');
             document.getElementById('errorWrapper').classList.add('hidden');
@@ -84,11 +86,13 @@
             document.getElementById('refreshBtn').disabled = true;
 
             try {
+                // ดึงข้อมูลผ่าน Vercel Serverless Function ของเรา
                 const response = await fetch('/api/nhso');
                 const data = await response.json();
 
                 if (data.error) throw new Error(data.error);
 
+                // หา Array ของข้อมูลบริการ
                 let servicesArray = [];
                 if (Array.isArray(data)) servicesArray = data;
                 else if (data.data && Array.isArray(data.data)) servicesArray = data.data;
@@ -99,50 +103,53 @@
                     }
                 }
 
+                // ค้นหารหัสบริการ PG0190010
                 const targetService = servicesArray.find(s => {
                     const code = (s.service_code || s.code || s.id || s.sub_service_code || "").toString().toUpperCase();
                     return code.includes(targetServiceCode);
                 });
 
+                const badge = document.getElementById('statusBadge');
+                const iconContainer = document.getElementById('statusIcon');
+                const textContainer = document.getElementById('statusText');
+
+                // จัดการชื่อบริการ
+                const name = targetService?.service_code_desc || targetService?.service_name || targetService?.name || 'บริการนวด อบ ประคบ ในกลุ่มโรคอื่น';
+                document.getElementById('serviceName').innerText = name;
+
+                // เช็คว่ามีสิทธิ์หรือไม่ (โดยดูจาก countResult > 0 หรือมีข้อมูลส่งมา)
+                let hasRight = false;
                 if (targetService) {
-                    // ดึงชื่อบริการ
-                    const name = targetService.service_code_desc || targetService.service_name || targetService.name || 'บริการนวด อบ ประคบ ในกลุ่มโรคอื่น';
-                    document.getElementById('serviceName').innerText = name;
-
-                    // ดึงตัวเลขสิทธิจากตัวแปรที่เพิ่งค้นพบ (countResult)
                     const countResult = parseInt(targetService.countResult || 0);
-
-                    const remainCountEl = document.getElementById('remainCount');
-                    const statusMsgEl = document.getElementById('statusMessage');
-
-                    // แสดงตัวเลข
-                    remainCountEl.innerText = countResult;
-
-                    // เปลี่ยนสีตามจำนวนสิทธิ
-                    if (countResult > 0) {
-                        remainCountEl.className = "text-6xl font-extrabold tracking-tighter text-emerald-600 drop-shadow-sm";
-                        remainCountEl.nextElementSibling.className = "text-xl font-bold text-emerald-600";
-                        statusMsgEl.innerText = "พร้อมรับบริการ";
-                        statusMsgEl.className = "mt-4 px-4 py-1.5 rounded-full text-sm font-bold bg-emerald-100 text-emerald-700";
-                    } else {
-                        remainCountEl.className = "text-6xl font-extrabold tracking-tighter text-rose-500 drop-shadow-sm";
-                        remainCountEl.nextElementSibling.className = "text-xl font-bold text-rose-500";
-                        statusMsgEl.innerText = "สิทธิหมดแล้ว";
-                        statusMsgEl.className = "mt-4 px-4 py-1.5 rounded-full text-sm font-bold bg-rose-100 text-rose-700";
+                    // ถ้า สปสช. ส่งค่ามาให้แปลว่าปกติมีสิทธิ์ แต่เช็ค countResult เผื่อไว้
+                    if (countResult > 0 || targetService.countResult === undefined) {
+                        hasRight = true;
                     }
-                    
-                    document.getElementById('lastUpdated').innerText = new Date().toLocaleTimeString('th-TH');
-                    document.getElementById('loadingIndicator').classList.add('hidden');
-                    document.getElementById('dataContainer').classList.remove('hidden');
-                    document.getElementById('dataContainer').classList.add('flex');
-                } else {
-                    throw new Error(`ไม่พบรหัสบริการ ${targetServiceCode} กรุณาตรวจสอบสิทธิในระบบ สปสช.`);
                 }
+
+                if (hasRight) {
+                    // กรณี: มีสิทธิ์ (สีเขียว)
+                    badge.className = "flex flex-col items-center justify-center gap-4 py-10 px-6 bg-emerald-50 rounded-[2rem] border-2 border-emerald-200 shadow-sm";
+                    iconContainer.innerHTML = '<div class="bg-emerald-500 rounded-full p-3 shadow-md shadow-emerald-500/30"><svg class="w-12 h-12 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7" /></svg></div>';
+                    textContainer.innerText = "มีสิทธิ์";
+                    textContainer.className = "text-4xl font-extrabold text-emerald-600 tracking-tight";
+                } else {
+                    // กรณี: สิทธิหมด หรือ ไม่พบข้อมูลในระบบ (สีแดง)
+                    badge.className = "flex flex-col items-center justify-center gap-4 py-10 px-6 bg-rose-50 rounded-[2rem] border-2 border-rose-200 shadow-sm";
+                    iconContainer.innerHTML = '<div class="bg-rose-500 rounded-full p-3 shadow-md shadow-rose-500/30"><svg class="w-12 h-12 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M6 18L18 6M6 6l12 12" /></svg></div>';
+                    textContainer.innerText = "สิทธิหมด";
+                    textContainer.className = "text-4xl font-extrabold text-rose-600 tracking-tight";
+                }
+
+                // แสดงผลเวลาและซ่อน Loading
+                document.getElementById('lastUpdated').innerText = new Date().toLocaleTimeString('th-TH');
+                document.getElementById('loadingIndicator').classList.add('hidden');
+                document.getElementById('dataContainer').classList.remove('hidden');
 
             } catch (error) {
                 document.getElementById('loadingIndicator').classList.add('hidden');
                 document.getElementById('errorWrapper').classList.remove('hidden');
-                document.getElementById('errorText').innerText = error.message;
+                document.getElementById('errorText').innerText = "เชื่อมต่อระบบขัดข้อง: " + error.message;
             } finally {
                 document.getElementById('refreshIcon').classList.remove('spin');
                 document.getElementById('refreshBtn').disabled = false;
