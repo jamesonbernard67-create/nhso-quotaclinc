@@ -12,7 +12,6 @@
         body { font-family: 'Kanit', sans-serif; background-color: #f8fafc; }
         .spin { animation: spin 1s linear infinite; }
         @keyframes spin { 100% { transform: rotate(360deg); } }
-        /* ซ่อน Scrollbar แต่ยังเลื่อนได้ */
         ::-webkit-scrollbar { width: 0px; background: transparent; }
     </style>
 </head>
@@ -25,7 +24,6 @@
             <div class="relative z-10">
                 <div class="flex justify-center mb-3">
                     <div class="p-3 bg-white/20 rounded-2xl backdrop-blur-sm">
-                        <!-- ไอคอนโล่ -->
                         <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path><path d="m9 12 2 2 4-4"></path></svg>
                     </div>
                 </div>
@@ -73,7 +71,7 @@
                 </div>
             </div>
 
-            <!-- ข้อความแจ้งเตือน (ซ่อนไว้เป็นค่าเริ่มต้น) -->
+            <!-- ข้อความแจ้งเตือน -->
             <div id="errorMessage" class="hidden mb-6 flex items-start gap-2 p-3 bg-rose-50 text-rose-800 rounded-xl text-xs border border-rose-200 leading-relaxed">
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="shrink-0 mt-0.5"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
                 <p id="errorText">ไม่สามารถดึงข้อมูลได้</p>
@@ -96,9 +94,13 @@
 
     <script>
         const targetServiceCode = 'PG0190010';
+        // API ตัวจริงของ สปสช.
+        const apiUrl = 'https://liffquota.nhso.go.th/api/citizen/services';
+        // ใช้ Proxy ฟรี (allorigins) เพื่อแก้ปัญหาโดนบล็อก CORS จากเบราว์เซอร์
+        const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(apiUrl)}`;
         
         async function fetchData() {
-            // อัปเดต UI เพื่อแสดงสถานะกำลังโหลด
+            // อัปเดต UI ให้แสดงตัวโหลด
             document.getElementById('loadingIndicator').classList.remove('hidden');
             document.getElementById('dataContainer').classList.add('hidden');
             document.getElementById('errorMessage').classList.add('hidden');
@@ -107,16 +109,18 @@
             document.getElementById('refreshBtn').classList.replace('bg-emerald-500', 'bg-slate-300');
 
             try {
-                // พยายามดึงข้อมูลจาก /api/nhso (ซึ่งจะถูก Vercel Rewrite ไปยัง API จริงเพื่อแก้ปัญหา CORS)
-                // หากเทสในเครื่องตรงๆ อาจจะใช้ URL จริง แต่บน Vercel ต้องผ่าน Rewrite
-                let response = await fetch('/api/nhso');
-                
-                // ถ้าระบบหา /api/nhso ไม่เจอ (เช่น เปิดไฟล์ html จากเครื่องตรงๆ) ให้ลองดึงตรงๆ ดูก่อน
-                if (!response.ok && response.status === 404) {
-                    response = await fetch('https://liffquota.nhso.go.th/api/citizen/services');
+                let response;
+                try {
+                    // ลองดึงผ่าน Proxy ดูก่อน (วิธีนี้ชัวร์ที่สุด)
+                    response = await fetch(proxyUrl);
+                } catch (e) {
+                    // หาก Proxy มีปัญหา ลองยิงตรงๆ (เผื่อ API เค้าเปิดรับ)
+                    response = await fetch(apiUrl);
                 }
 
-                if (!response.ok) throw new Error(`เกิดข้อผิดพลาดในการดึงข้อมูล (${response.status})`);
+                if (!response || !response.ok) {
+                    throw new Error(`ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้ในขณะนี้`);
+                }
                 
                 const data = await response.json();
                 const servicesArray = Array.isArray(data) ? data : (data.data || data.services || []);
@@ -130,11 +134,9 @@
                     const remain = parseInt(targetService.quota_remain || targetService.remain || 0);
                     const name = targetService.service_name || targetService.name || 'บริการนวด อบ ประคบ ในกลุ่มโรคอื่น';
 
-                    // คำนวณเปอร์เซ็นต์
                     const percentUsed = total > 0 ? (used / total) * 100 : 0;
                     const percentRemain = total > 0 ? (remain / total) * 100 : 0;
 
-                    // แสดงผลบนหน้าจอ
                     document.getElementById('serviceName').innerText = name;
                     document.getElementById('remainCount').innerText = remain.toLocaleString();
                     document.getElementById('usedCount').innerText = used.toLocaleString();
@@ -156,22 +158,20 @@
                 console.error('Error fetching data:', error);
                 document.getElementById('loadingIndicator').classList.add('hidden');
                 document.getElementById('errorMessage').classList.remove('hidden');
-                document.getElementById('errorText').innerText = error.message;
+                document.getElementById('errorText').innerText = "ขัดข้อง: " + error.message;
             } finally {
-                // คืนค่าปุ่มรีเฟรชกลับสู่สถานะปกติ
                 document.getElementById('refreshIcon').classList.remove('spin');
                 document.getElementById('refreshBtn').disabled = false;
                 document.getElementById('refreshBtn').classList.replace('bg-slate-300', 'bg-emerald-500');
             }
         }
 
-        // ดึงข้อมูลครั้งแรกเมื่อโหลดหน้าเว็บ
         window.onload = () => {
             fetchData();
-            // ตั้งเวลาดึงข้อมูลใหม่อัตโนมัติทุกๆ 1 นาที (60,000 มิลลิวินาที)
             setInterval(fetchData, 60000);
         };
     </script>
 </body>
 </html>
+
 
