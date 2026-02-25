@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ตรวจสอบสิทธิ PG0190010</title>
+    <!-- เรียกใช้ Tailwind CSS ผ่าน CDN สำหรับตกแต่งความสวยงาม -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- เรียกใช้ฟอนต์ Kanit จาก Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Kanit', sans-serif; background-color: #f8fafc; }
+        .spin { animation: spin 1s linear infinite; }
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+        /* ซ่อน Scrollbar แต่ยังเลื่อนได้ */
+        ::-webkit-scrollbar { width: 0px; background: transparent; }
+    </style>
+</head>
+<body class="min-h-screen flex items-center justify-center p-4">
+
+    <div class="max-w-md w-full bg-white rounded-3xl shadow-xl overflow-hidden border border-slate-100">
+        
+        <!-- ส่วนหัว (Header) -->
+        <div class="bg-gradient-to-r from-emerald-500 to-teal-600 p-6 text-white text-center relative">
+            <div class="relative z-10">
+                <div class="flex justify-center mb-3">
+                    <div class="p-3 bg-white/20 rounded-2xl backdrop-blur-sm">
+                        <!-- ไอคอนโล่ -->
+                        <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path><path d="m9 12 2 2 4-4"></path></svg>
+                    </div>
+                </div>
+                <h1 class="text-xl font-bold mb-1 tracking-wide">ระบบตรวจสอบสิทธิ สปสช.</h1>
+                <p class="text-emerald-50 text-sm font-medium">Real-time Quota Tracker</p>
+            </div>
+        </div>
+
+        <!-- ส่วนเนื้อหา (Content) -->
+        <div class="p-6">
+            <div class="mb-6 text-center">
+                <h2 id="serviceName" class="text-slate-800 font-semibold text-lg leading-tight mb-2">
+                    กำลังโหลดข้อมูล...
+                </h2>
+                <span class="inline-block px-3 py-1 bg-emerald-100 text-emerald-800 text-xs font-bold rounded-full">
+                    รหัส: PG0190010
+                </span>
+            </div>
+
+            <!-- กล่องแสดงตัวเลขคงเหลือ -->
+            <div class="bg-slate-50 rounded-2xl p-6 text-center mb-6 border border-slate-100 relative">
+                <p class="text-slate-500 text-sm font-medium mb-2">จำนวนสิทธิคงเหลือ</p>
+                
+                <div id="loadingIndicator" class="flex justify-center py-2">
+                    <svg class="spin text-emerald-500" xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-6.219-8.56"></path></svg>
+                </div>
+
+                <div id="dataContainer" class="hidden flex-col items-center justify-center text-emerald-600">
+                    <div class="flex items-baseline gap-1">
+                        <span id="remainCount" class="text-5xl font-extrabold tracking-tighter">0</span>
+                        <span class="text-lg font-medium">สิทธิ</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- สถิติการใช้งาน และแถบ Progress Bar -->
+            <div class="mb-6">
+                <div class="flex justify-between text-sm mb-2 px-1">
+                    <span class="text-slate-600 font-medium">ใช้ไปแล้ว <span id="usedCount" class="text-rose-500">0</span></span>
+                    <span class="text-slate-600 font-medium">ทั้งหมด <span id="totalCount">0</span></span>
+                </div>
+                <div class="h-4 w-full bg-slate-100 rounded-full overflow-hidden flex">
+                    <div id="usedBar" class="h-full bg-rose-400 transition-all duration-1000 ease-out" style="width: 0%" title="ใช้ไป"></div>
+                    <div id="remainBar" class="h-full bg-emerald-500 transition-all duration-1000 ease-out" style="width: 0%" title="คงเหลือ"></div>
+                </div>
+            </div>
+
+            <!-- ข้อความแจ้งเตือน (ซ่อนไว้เป็นค่าเริ่มต้น) -->
+            <div id="errorMessage" class="hidden mb-6 flex items-start gap-2 p-3 bg-rose-50 text-rose-800 rounded-xl text-xs border border-rose-200 leading-relaxed">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="shrink-0 mt-0.5"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+                <p id="errorText">ไม่สามารถดึงข้อมูลได้</p>
+            </div>
+
+            <!-- ส่วนท้าย ควบคุมและแสดงเวลา -->
+            <div class="flex items-center justify-between mt-2 pt-4 border-t border-slate-100">
+                <div class="flex items-center gap-1.5 text-slate-400 text-xs font-medium">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                    <span>อัปเดต: <span id="lastUpdated">-</span></span>
+                </div>
+                
+                <button onclick="fetchData()" id="refreshBtn" class="flex items-center gap-2 px-4 py-2 bg-emerald-500 text-white rounded-xl text-sm font-semibold hover:bg-emerald-600 active:scale-95 transition-all shadow-sm">
+                    <svg id="refreshIcon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path><path d="M3 3v5h5"></path></svg>
+                    รีเฟรช
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const targetServiceCode = 'PG0190010';
+        
+        async function fetchData() {
+            // อัปเดต UI เพื่อแสดงสถานะกำลังโหลด
+            document.getElementById('loadingIndicator').classList.remove('hidden');
+            document.getElementById('dataContainer').classList.add('hidden');
+            document.getElementById('errorMessage').classList.add('hidden');
+            document.getElementById('refreshIcon').classList.add('spin');
+            document.getElementById('refreshBtn').disabled = true;
+            document.getElementById('refreshBtn').classList.replace('bg-emerald-500', 'bg-slate-300');
+
+            try {
+                // พยายามดึงข้อมูลจาก /api/nhso (ซึ่งจะถูก Vercel Rewrite ไปยัง API จริงเพื่อแก้ปัญหา CORS)
+                // หากเทสในเครื่องตรงๆ อาจจะใช้ URL จริง แต่บน Vercel ต้องผ่าน Rewrite
+                let response = await fetch('/api/nhso');
+                
+                // ถ้าระบบหา /api/nhso ไม่เจอ (เช่น เปิดไฟล์ html จากเครื่องตรงๆ) ให้ลองดึงตรงๆ ดูก่อน
+                if (!response.ok && response.status === 404) {
+                    response = await fetch('https://liffquota.nhso.go.th/api/citizen/services');
+                }
+
+                if (!response.ok) throw new Error(`เกิดข้อผิดพลาดในการดึงข้อมูล (${response.status})`);
+                
+                const data = await response.json();
+                const servicesArray = Array.isArray(data) ? data : (data.data || data.services || []);
+                
+                // ค้นหาบริการรหัส PG0190010
+                const targetService = servicesArray.find(s => s.service_code === targetServiceCode || s.code === targetServiceCode);
+
+                if (targetService) {
+                    const total = parseInt(targetService.quota_total || targetService.total || 0);
+                    const used = parseInt(targetService.quota_used || targetService.used || 0);
+                    const remain = parseInt(targetService.quota_remain || targetService.remain || 0);
+                    const name = targetService.service_name || targetService.name || 'บริการนวด อบ ประคบ ในกลุ่มโรคอื่น';
+
+                    // คำนวณเปอร์เซ็นต์
+                    const percentUsed = total > 0 ? (used / total) * 100 : 0;
+                    const percentRemain = total > 0 ? (remain / total) * 100 : 0;
+
+                    // แสดงผลบนหน้าจอ
+                    document.getElementById('serviceName').innerText = name;
+                    document.getElementById('remainCount').innerText = remain.toLocaleString();
+                    document.getElementById('usedCount').innerText = used.toLocaleString();
+                    document.getElementById('totalCount').innerText = total.toLocaleString();
+                    
+                    document.getElementById('usedBar').style.width = `${percentUsed}%`;
+                    document.getElementById('remainBar').style.width = `${percentRemain}%`;
+                    
+                    document.getElementById('lastUpdated').innerText = new Date().toLocaleTimeString('th-TH');
+                    
+                    document.getElementById('loadingIndicator').classList.add('hidden');
+                    document.getElementById('dataContainer').classList.remove('hidden');
+                    document.getElementById('dataContainer').classList.add('flex');
+                } else {
+                    throw new Error(`ไม่พบข้อมูลรหัสบริการ ${targetServiceCode} ในระบบขณะนี้`);
+                }
+
+            } catch (error) {
+                console.error('Error fetching data:', error);
+                document.getElementById('loadingIndicator').classList.add('hidden');
+                document.getElementById('errorMessage').classList.remove('hidden');
+                document.getElementById('errorText').innerText = error.message;
+            } finally {
+                // คืนค่าปุ่มรีเฟรชกลับสู่สถานะปกติ
+                document.getElementById('refreshIcon').classList.remove('spin');
+                document.getElementById('refreshBtn').disabled = false;
+                document.getElementById('refreshBtn').classList.replace('bg-slate-300', 'bg-emerald-500');
+            }
+        }
+
+        // ดึงข้อมูลครั้งแรกเมื่อโหลดหน้าเว็บ
+        window.onload = () => {
+            fetchData();
+            // ตั้งเวลาดึงข้อมูลใหม่อัตโนมัติทุกๆ 1 นาที (60,000 มิลลิวินาที)
+            setInterval(fetchData, 60000);
+        };
+    </script>
+</body>
+</html>
+
