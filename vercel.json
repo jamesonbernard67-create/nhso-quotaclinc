@@ -1,0 +1,8 @@
+{
+  "rewrites": [
+    {
+      "source": "/api/nhso",
+      "destination": "https://liffquota.nhso.go.th/api/citizen/services"
+    }
+  ]
+}
