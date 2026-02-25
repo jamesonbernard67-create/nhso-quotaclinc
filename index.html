@@ -15,9 +15,14 @@
 </head>
 <body class="min-h-screen flex items-center justify-center p-4">
 
-    <div class="max-w-md w-full bg-white rounded-3xl shadow-xl overflow-hidden border border-slate-100 flex flex-col max-h-[90vh]">
+    <div class="max-w-md w-full bg-white rounded-3xl shadow-xl overflow-hidden border border-slate-100 flex flex-col">
         <!-- Header -->
         <div class="bg-gradient-to-r from-emerald-500 to-teal-600 p-6 text-white text-center relative shrink-0">
+            <div class="flex justify-center mb-3">
+                <div class="p-3 bg-white/20 rounded-2xl backdrop-blur-sm">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path><path d="m9 12 2 2 4-4"></path></svg>
+                </div>
+            </div>
             <h1 class="text-xl font-bold mb-1 tracking-wide">ระบบตรวจสอบสิทธิ สปสช.</h1>
             <p class="text-emerald-50 text-sm font-medium">Real-time Eligibility Check</p>
         </div>
@@ -42,27 +47,21 @@
                 </div>
 
                 <div id="dataContainer" class="hidden flex-col items-center justify-center">
-                    <!-- ป้ายแสดงสถานะ -->
-                    <div id="statusBadge" class="inline-flex items-center gap-2 px-8 py-4 bg-emerald-100 text-emerald-700 font-bold text-2xl rounded-2xl shadow-sm border border-emerald-200 transition-all transform hover:scale-105">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
-                        มีสิทธิรับบริการ
+                    <!-- ป้ายแสดงสถานะ (จะถูกเปลี่ยนสีและข้อความอัตโนมัติผ่าน JS) -->
+                    <div id="statusBadge" class="inline-flex items-center gap-2 px-8 py-4 rounded-2xl shadow-sm border transition-all transform hover:scale-105">
+                        <svg id="statusIcon" xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"></svg>
+                        <span id="statusText" class="font-bold text-2xl">รอตรวจสอบ</span>
                     </div>
                 </div>
             </div>
 
-            <!-- กล่องซ่อนข้อมูลดิบ (เผื่อระบบเปลี่ยนในอนาคต) -->
-            <div id="debugWrapper" class="hidden mb-6 flex-col gap-2">
-                <p class="text-xs text-slate-400 font-medium text-center">ข้อมูลระบบเบื้องหลัง (Debug)</p>
-                <div class="p-3 bg-slate-800 text-green-400 rounded-xl text-[10px] overflow-x-auto max-h-32 overflow-y-auto font-mono">
-                    <pre id="debugData"></pre>
-                </div>
-            </div>
-
+            <!-- กล่องแจ้งเตือน Error -->
             <div id="errorWrapper" class="hidden mb-6 p-4 bg-rose-50 text-rose-800 rounded-xl text-sm border border-rose-200 flex items-start gap-2">
                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="shrink-0 mt-0.5"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
                 <p id="errorText" class="font-medium"></p>
             </div>
 
+            <!-- Footer & Controls -->
             <div class="flex items-center justify-between mt-2 pt-4 border-t border-slate-100 shrink-0">
                 <div class="text-slate-400 text-xs font-medium">
                     อัปเดต: <span id="lastUpdated">-</span>
@@ -79,15 +78,15 @@
         const targetServiceCode = 'PG0190010';
         
         async function fetchData() {
+            // เซ็ตสถานะตอนกำลังโหลด
             document.getElementById('loadingIndicator').classList.remove('hidden');
             document.getElementById('dataContainer').classList.add('hidden');
-            document.getElementById('debugWrapper').classList.add('hidden');
             document.getElementById('errorWrapper').classList.add('hidden');
             document.getElementById('refreshIcon').classList.add('spin');
             document.getElementById('refreshBtn').disabled = true;
 
             try {
-                // เรียกผ่าน API ที่เราจำลอง Cookie ไว้ (ไฟล์ api/nhso.js)
+                // ดึงข้อมูลผ่าน Vercel Serverless Function
                 const response = await fetch('/api/nhso');
                 const data = await response.json();
 
@@ -111,15 +110,31 @@
                 });
 
                 if (targetService) {
-                    // ดึงชื่อบริการมาแสดง
+                    // 1. จัดการชื่อบริการ
                     const name = targetService.service_name || targetService.name || targetService.title || 'บริการนวด อบ ประคบ ในกลุ่มโรคอื่น';
                     document.getElementById('serviceName').innerText = name;
 
-                    // แสดงข้อมูลดิบเบื้องหลัง
-                    document.getElementById('debugData').innerText = JSON.stringify(targetService, null, 2);
-                    document.getElementById('debugWrapper').classList.remove('hidden');
+                    // 2. จัดการสถานะ (มีสิทธิ / ไม่มีสิทธิ)
+                    // โดยปกติถ้าข้อมูลถูกส่งมาในระบบ สปสช. แปลว่ามีสิทธิ แต่เราเขียนเผื่อไว้เช็คเงื่อนไขต่างๆ
+                    const isEligible = targetService.is_eligible !== false && targetService.status !== 'inactive';
+                    
+                    const badge = document.getElementById('statusBadge');
+                    const statusText = document.getElementById('statusText');
+                    const statusIcon = document.getElementById('statusIcon');
 
-                    // แสดงผลเวลาและซ่อน Loading
+                    if (isEligible) {
+                        // กรณีมีสิทธิ (สีเขียว)
+                        badge.className = "inline-flex items-center gap-2 px-8 py-4 bg-emerald-100 text-emerald-700 rounded-2xl shadow-sm border border-emerald-200 transition-all transform hover:scale-105";
+                        statusText.innerText = "มีสิทธิรับบริการ";
+                        statusIcon.innerHTML = '<polyline points="20 6 9 17 4 12"></polyline>'; // ไอคอนเครื่องหมายถูก
+                    } else {
+                        // กรณีไม่มีสิทธิ (สีแดง)
+                        badge.className = "inline-flex items-center gap-2 px-8 py-4 bg-rose-100 text-rose-700 rounded-2xl shadow-sm border border-rose-200 transition-all transform hover:scale-105";
+                        statusText.innerText = "ไม่มีสิทธิรับบริการ";
+                        statusIcon.innerHTML = '<line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line>'; // ไอคอนกากบาท
+                    }
+
+                    // 3. แสดงผลและอัปเดตเวลา
                     document.getElementById('lastUpdated').innerText = new Date().toLocaleTimeString('th-TH');
                     document.getElementById('loadingIndicator').classList.add('hidden');
                     document.getElementById('dataContainer').classList.remove('hidden');
@@ -139,176 +154,6 @@
         }
 
         window.onload = fetchData;
-    </script>
-</body>
-</html>
-
-
-                const targetService = servicesArray.find(s => {
-                    const code = (s.service_code || s.code || s.id || s.sub_service_code || "").toString().toUpperCase();
-                    return code.includes(targetServiceCode);
-                });
-
-                if (targetService) {
-                    // ดึงชื่อบริการมาแสดง
-                    const name = targetService.service_name || targetService.name || targetService.title || 'บริการนวด อบ ประคบ ในกลุ่มโรคอื่น';
-                    document.getElementById('serviceName').innerText = name;
-
-                    // แสดงข้อมูลดิบเบื้องหลัง (ซ่อนไว้เป็นกล่องเล็กๆ เผื่อใช้ตรวจสอบ)
-                    document.getElementById('debugData').innerText = JSON.stringify(targetService, null, 2);
-                    document.getElementById('debugWrapper').classList.remove('hidden');
-
-                    // แสดงผลเวลาและซ่อน Loading
-                    document.getElementById('lastUpdated').innerText = new Date().toLocaleTimeString('th-TH');
-                    document.getElementById('loadingIndicator').classList.add('hidden');
-                    document.getElementById('dataContainer').classList.remove('hidden');
-                    document.getElementById('dataContainer').classList.add('flex');
-                } else {
-                    throw new Error(`ไม่พบข้อมูลบริการนี้ในระบบ (คุณอาจจะไม่มีสิทธิ หรือ รหัสบริการเปลี่ยนไป)`);
-                }
-
-            } catch (error) {
-                document.getElementById('loadingIndicator').classList.add('hidden');
-                document.getElementById('errorWrapper').classList.remove('hidden');
-                document.getElementById('errorText').innerText = error.message;
-            } finally {
-                document.getElementById('refreshIcon').classList.remove('spin');
-                document.getElementById('refreshBtn').disabled = false;
-            }
-        }
-
-        window.onload = fetchData;
-    </script>
-</body>
-</html>
-
-
-                    return code.includes(targetServiceCode);
-                });
-
-                if (targetService) {
-                    // เอาข้อมูลก้อนนี้มาโชว์ให้คุณดูหน้าเว็บเลย!
-                    document.getElementById('debugData').innerText = JSON.stringify(targetService, null, 2);
-                    document.getElementById('debugWrapper').classList.remove('hidden');
-                    document.getElementById('debugWrapper').classList.add('flex');
-
-                    const name = targetService.service_name || targetService.name || 'บริการนวด อบ ประคบ ในกลุ่มโรคอื่น';
-                    document.getElementById('serviceName').innerText = name;
-
-                    // พยายามดึงตัวเลข (ถ้ามี)
-                    const total = parseInt(targetService.quota_total || targetService.total || targetService.limit || 0);
-                    const remain = parseInt(targetService.quota_remain || targetService.remain || targetService.balance || 0);
-                    
-                    document.getElementById('remainCount').innerText = remain;
-                    document.getElementById('totalCount').innerText = total;
-
-                    // ลองเดาสถานะ "มีสิทธิ"
-                    const badge = document.getElementById('statusBadge');
-                    // ถ้าในข้อมูลมีคำว่า true, 1, 'Y', 'active' หรืออะไรที่แปลว่ามีสิทธิ
-                    const isEligible = targetService.is_eligible || targetService.has_right || targetService.status || true; 
-                    
-                    if (isEligible) {
-                        badge.innerText = "✅ มีสิทธิ";
-                        badge.className = "px-6 py-3 bg-emerald-100 text-emerald-700 font-bold text-xl rounded-xl mb-4 shadow-sm border border-emerald-200 inline-block";
-                    } else {
-                        badge.innerText = "❌ ไม่มีสิทธิ";
-                        badge.className = "px-6 py-3 bg-rose-100 text-rose-700 font-bold text-xl rounded-xl mb-4 shadow-sm border border-rose-200 inline-block";
-                    }
-
-                    document.getElementById('lastUpdated').innerText = new Date().toLocaleTimeString('th-TH');
-                    document.getElementById('loadingIndicator').classList.add('hidden');
-                    document.getElementById('dataContainer').classList.remove('hidden');
-                    document.getElementById('dataContainer').classList.add('flex');
-                } else {
-                    throw new Error(`ไม่พบข้อมูลรหัส ${targetServiceCode}`);
-                }
-
-            } catch (error) {
-                document.getElementById('loadingIndicator').classList.add('hidden');
-                document.getElementById('errorWrapper').classList.remove('hidden');
-                document.getElementById('errorText').innerText = error.message;
-            } finally {
-                document.getElementById('refreshBtn').disabled = false;
-            }
-        }
-
-        window.onload = fetchData;
-    </script>
-</body>
-</html>
-
-
-                rawDataForDebug = data; // เก็บข้อมูลไว้แสดงกรณี Error
-
-                if (data.error) throw new Error(data.error);
-
-                // ค้นหา Array ของข้อมูลให้ฉลาดขึ้น ไม่ว่า API จะยัดมาใน key ไหน
-                let servicesArray = [];
-                if (Array.isArray(data)) servicesArray = data;
-                else if (data.data && Array.isArray(data.data)) servicesArray = data.data;
-                else if (data.services && Array.isArray(data.services)) servicesArray = data.services;
-                else if (data.result && Array.isArray(data.result)) servicesArray = data.result;
-                else if (data.items && Array.isArray(data.items)) servicesArray = data.items;
-                else {
-                    // วนลูปหา Array แรกที่เจอใน Object
-                    for (let key in data) {
-                        if (Array.isArray(data[key])) {
-                            servicesArray = data[key];
-                            break;
-                        }
-                    }
-                }
-
-                // ค้นหาเป้าหมาย แบบไม่จำกัดตัวพิมพ์เล็กพิมพ์ใหญ่ และรองรับทุกชื่อตัวแปร
-                const targetService = servicesArray.find(s => {
-                    const code = (s.service_code || s.code || s.id || s.serviceId || s.sub_service_code || "").toString().toUpperCase();
-                    return code.includes(targetServiceCode);
-                });
-
-                if (targetService) {
-                    // พยายามดึงตัวเลขไม่ว่ามันจะชื่อ field ว่าอะไร
-                    const total = parseInt(targetService.quota_total || targetService.total || targetService.limit || 0);
-                    const used = parseInt(targetService.quota_used || targetService.used || targetService.count || 0);
-                    const remain = parseInt(targetService.quota_remain || targetService.remain || targetService.balance || 0);
-                    const name = targetService.service_name || targetService.name || targetService.title || 'บริการนวด อบ ประคบ ในกลุ่มโรคอื่น';
-
-                    document.getElementById('serviceName').innerText = name;
-                    document.getElementById('remainCount').innerText = remain.toLocaleString();
-                    document.getElementById('usedCount').innerText = used.toLocaleString();
-                    document.getElementById('totalCount').innerText = total.toLocaleString();
-                    
-                    document.getElementById('usedBar').style.width = total > 0 ? `${(used/total)*100}%` : '0%';
-                    document.getElementById('remainBar').style.width = total > 0 ? `${(remain/total)*100}%` : '0%';
-                    document.getElementById('lastUpdated').innerText = new Date().toLocaleTimeString('th-TH');
-                    
-                    document.getElementById('loadingIndicator').classList.add('hidden');
-                    document.getElementById('dataContainer').classList.remove('hidden');
-                    document.getElementById('dataContainer').classList.add('flex');
-                } else {
-                    throw new Error(`ไม่พบรหัส ${targetServiceCode} ดูข้อมูลดิบด้านล่าง`);
-                }
-
-            } catch (error) {
-                document.getElementById('loadingIndicator').classList.add('hidden');
-                document.getElementById('errorWrapper').classList.remove('hidden');
-                document.getElementById('errorWrapper').classList.add('flex');
-                document.getElementById('errorText').innerText = error.message;
-                
-                // นำข้อมูลที่ได้จาก API มาปริ้นต์ลงหน้าจอให้เราดูโครงสร้าง
-                if (rawDataForDebug) {
-                    document.getElementById('debugData').innerText = JSON.stringify(rawDataForDebug, null, 2);
-                } else {
-                    document.getElementById('debugData').innerText = "ไม่ได้รับข้อมูล JSON หรือข้อมูลว่างเปล่า";
-                }
-            } finally {
-                document.getElementById('refreshIcon').classList.remove('spin');
-                document.getElementById('refreshBtn').disabled = false;
-            }
-        }
-
-        window.onload = () => {
-            fetchData();
-        };
     </script>
 </body>
 </html>
