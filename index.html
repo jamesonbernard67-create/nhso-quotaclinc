@@ -19,7 +19,7 @@
         <!-- Header -->
         <div class="bg-gradient-to-r from-emerald-500 to-teal-600 p-6 text-white text-center relative shrink-0">
             <h1 class="text-xl font-bold mb-1 tracking-wide">ระบบตรวจสอบสิทธิ สปสช.</h1>
-            <p class="text-emerald-50 text-sm font-medium">Real-time Tracker</p>
+            <p class="text-emerald-50 text-sm font-medium">Real-time Eligibility Check</p>
         </div>
 
         <!-- Content -->
@@ -34,35 +34,32 @@
             </div>
 
             <!-- กล่องแสดงสถานะ -->
-            <div class="bg-slate-50 rounded-2xl p-6 text-center mb-6 border border-slate-100 relative">
-                <p class="text-slate-500 text-sm font-medium mb-4">สถานะการรับบริการ</p>
+            <div class="bg-slate-50 rounded-2xl p-8 text-center mb-6 border border-slate-100 relative shadow-inner">
+                <p class="text-slate-500 text-sm font-medium mb-4">สถานะการรับบริการของคุณ</p>
                 
-                <div id="loadingIndicator" class="flex justify-center py-2">
-                    <svg class="spin text-emerald-500" xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-6.219-8.56"></path></svg>
+                <div id="loadingIndicator" class="flex justify-center py-4">
+                    <svg class="spin text-emerald-500" xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-6.219-8.56"></path></svg>
                 </div>
 
                 <div id="dataContainer" class="hidden flex-col items-center justify-center">
-                    <!-- ป้ายแสดงคำว่า มีสิทธิ / ไม่มีสิทธิ -->
-                    <div id="statusBadge" class="px-6 py-3 bg-emerald-100 text-emerald-700 font-bold text-xl rounded-xl mb-4 shadow-sm border border-emerald-200">
-                        รอตรวจสอบสถานะ
-                    </div>
-                    
-                    <div class="flex items-baseline gap-2 text-slate-400 text-sm">
-                        <span>โควต้าตัวเลข:</span>
-                        <span id="remainCount" class="font-bold">0</span> / <span id="totalCount">0</span>
+                    <!-- ป้ายแสดงสถานะ -->
+                    <div id="statusBadge" class="inline-flex items-center gap-2 px-8 py-4 bg-emerald-100 text-emerald-700 font-bold text-2xl rounded-2xl shadow-sm border border-emerald-200 transition-all transform hover:scale-105">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                        มีสิทธิรับบริการ
                     </div>
                 </div>
             </div>
 
-            <!-- กล่องแสดงข้อมูลดิบ (เพื่อหาว่า สปสช. ส่งอะไรมา) -->
+            <!-- กล่องซ่อนข้อมูลดิบ (เผื่อระบบเปลี่ยนในอนาคต) -->
             <div id="debugWrapper" class="hidden mb-6 flex-col gap-2">
-                <p class="text-xs text-rose-500 font-bold text-center">เจอตัวแปรแล้ว! ข้อมูลที่ สปสช. ส่งมาคือด้านล่างนี้:</p>
-                <div class="p-3 bg-slate-800 text-green-400 rounded-xl text-[11px] overflow-x-auto max-h-60 overflow-y-auto font-mono">
+                <p class="text-xs text-slate-400 font-medium text-center">ข้อมูลระบบเบื้องหลัง (Debug)</p>
+                <div class="p-3 bg-slate-800 text-green-400 rounded-xl text-[10px] overflow-x-auto max-h-32 overflow-y-auto font-mono">
                     <pre id="debugData"></pre>
                 </div>
             </div>
 
-            <div id="errorWrapper" class="hidden mb-6 p-3 bg-rose-50 text-rose-800 rounded-xl text-xs border border-rose-200">
+            <div id="errorWrapper" class="hidden mb-6 p-4 bg-rose-50 text-rose-800 rounded-xl text-sm border border-rose-200 flex items-start gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="shrink-0 mt-0.5"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
                 <p id="errorText" class="font-medium"></p>
             </div>
 
@@ -70,7 +67,8 @@
                 <div class="text-slate-400 text-xs font-medium">
                     อัปเดต: <span id="lastUpdated">-</span>
                 </div>
-                <button onclick="fetchData()" id="refreshBtn" class="flex items-center gap-2 px-4 py-2 bg-emerald-500 text-white rounded-xl text-sm font-semibold hover:bg-emerald-600 active:scale-95 transition-all">
+                <button onclick="fetchData()" id="refreshBtn" class="flex items-center gap-2 px-5 py-2.5 bg-emerald-500 text-white rounded-xl text-sm font-semibold hover:bg-emerald-600 active:scale-95 transition-all shadow-md">
+                    <svg id="refreshIcon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path><path d="M3 3v5h5"></path></svg>
                     รีเฟรช
                 </button>
             </div>
@@ -85,14 +83,17 @@
             document.getElementById('dataContainer').classList.add('hidden');
             document.getElementById('debugWrapper').classList.add('hidden');
             document.getElementById('errorWrapper').classList.add('hidden');
+            document.getElementById('refreshIcon').classList.add('spin');
             document.getElementById('refreshBtn').disabled = true;
 
             try {
+                // เรียกผ่าน API ที่เราจำลอง Cookie ไว้
                 const response = await fetch('/api/nhso');
                 const data = await response.json();
 
                 if (data.error) throw new Error(data.error);
 
+                // ค้นหา Array ของข้อมูลบริการ
                 let servicesArray = [];
                 if (Array.isArray(data)) servicesArray = data;
                 else if (data.data && Array.isArray(data.data)) servicesArray = data.data;
@@ -103,8 +104,46 @@
                     }
                 }
 
+                // ค้นหาบริการรหัส PG0190010
                 const targetService = servicesArray.find(s => {
                     const code = (s.service_code || s.code || s.id || s.sub_service_code || "").toString().toUpperCase();
+                    return code.includes(targetServiceCode);
+                });
+
+                if (targetService) {
+                    // ดึงชื่อบริการมาแสดง
+                    const name = targetService.service_name || targetService.name || targetService.title || 'บริการนวด อบ ประคบ ในกลุ่มโรคอื่น';
+                    document.getElementById('serviceName').innerText = name;
+
+                    // แสดงข้อมูลดิบเบื้องหลัง (ซ่อนไว้เป็นกล่องเล็กๆ เผื่อใช้ตรวจสอบ)
+                    document.getElementById('debugData').innerText = JSON.stringify(targetService, null, 2);
+                    document.getElementById('debugWrapper').classList.remove('hidden');
+
+                    // แสดงผลเวลาและซ่อน Loading
+                    document.getElementById('lastUpdated').innerText = new Date().toLocaleTimeString('th-TH');
+                    document.getElementById('loadingIndicator').classList.add('hidden');
+                    document.getElementById('dataContainer').classList.remove('hidden');
+                    document.getElementById('dataContainer').classList.add('flex');
+                } else {
+                    throw new Error(`ไม่พบข้อมูลบริการนี้ในระบบ (คุณอาจจะไม่มีสิทธิ หรือ รหัสบริการเปลี่ยนไป)`);
+                }
+
+            } catch (error) {
+                document.getElementById('loadingIndicator').classList.add('hidden');
+                document.getElementById('errorWrapper').classList.remove('hidden');
+                document.getElementById('errorText').innerText = error.message;
+            } finally {
+                document.getElementById('refreshIcon').classList.remove('spin');
+                document.getElementById('refreshBtn').disabled = false;
+            }
+        }
+
+        window.onload = fetchData;
+    </script>
+</body>
+</html>
+
+
                     return code.includes(targetServiceCode);
                 });
 
