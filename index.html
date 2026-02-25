@@ -87,7 +87,7 @@
             document.getElementById('refreshBtn').disabled = true;
 
             try {
-                // เรียกผ่าน API ที่เราจำลอง Cookie ไว้
+                // เรียกผ่าน API ที่เราจำลอง Cookie ไว้ (ไฟล์ api/nhso.js)
                 const response = await fetch('/api/nhso');
                 const data = await response.json();
 
@@ -105,6 +105,45 @@
                 }
 
                 // ค้นหาบริการรหัส PG0190010
+                const targetService = servicesArray.find(s => {
+                    const code = (s.service_code || s.code || s.id || s.sub_service_code || "").toString().toUpperCase();
+                    return code.includes(targetServiceCode);
+                });
+
+                if (targetService) {
+                    // ดึงชื่อบริการมาแสดง
+                    const name = targetService.service_name || targetService.name || targetService.title || 'บริการนวด อบ ประคบ ในกลุ่มโรคอื่น';
+                    document.getElementById('serviceName').innerText = name;
+
+                    // แสดงข้อมูลดิบเบื้องหลัง
+                    document.getElementById('debugData').innerText = JSON.stringify(targetService, null, 2);
+                    document.getElementById('debugWrapper').classList.remove('hidden');
+
+                    // แสดงผลเวลาและซ่อน Loading
+                    document.getElementById('lastUpdated').innerText = new Date().toLocaleTimeString('th-TH');
+                    document.getElementById('loadingIndicator').classList.add('hidden');
+                    document.getElementById('dataContainer').classList.remove('hidden');
+                    document.getElementById('dataContainer').classList.add('flex');
+                } else {
+                    throw new Error(`ไม่พบข้อมูลบริการรหัส ${targetServiceCode} ในระบบของคุณ`);
+                }
+
+            } catch (error) {
+                document.getElementById('loadingIndicator').classList.add('hidden');
+                document.getElementById('errorWrapper').classList.remove('hidden');
+                document.getElementById('errorText').innerText = error.message;
+            } finally {
+                document.getElementById('refreshIcon').classList.remove('spin');
+                document.getElementById('refreshBtn').disabled = false;
+            }
+        }
+
+        window.onload = fetchData;
+    </script>
+</body>
+</html>
+
+
                 const targetService = servicesArray.find(s => {
                     const code = (s.service_code || s.code || s.id || s.sub_service_code || "").toString().toUpperCase();
                     return code.includes(targetServiceCode);
