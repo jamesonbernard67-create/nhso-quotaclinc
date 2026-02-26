@@ -3,172 +3,254 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ตรวจสอบสิทธิ PG0190010</title>
+    <title>ตรวจสอบสิทธิ สปสช.</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
         body { font-family: 'Kanit', sans-serif; background-color: #f1f5f9; }
         .spin { animation: spin 1s linear infinite; }
         @keyframes spin { 100% { transform: rotate(360deg); } }
-        ::-webkit-scrollbar { width: 0px; background: transparent; }
+        .pulse { animation: pulse 2s infinite; }
+        @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.08); } }
+        .toast { animation: toastIn 0.3s ease forwards; }
+        @keyframes toastIn { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
     </style>
 </head>
 <body class="min-h-screen flex items-center justify-center p-4">
 
-    <div class="max-w-md w-full bg-white rounded-[2rem] shadow-xl overflow-hidden border border-slate-100 flex flex-col">
+    <div class="max-w-md w-full bg-white rounded-[2.5rem] shadow-2xl overflow-hidden border border-slate-100">
+        
         <!-- Header -->
-        <div class="bg-gradient-to-br from-emerald-500 to-teal-600 p-8 text-white text-center relative shrink-0">
+        <div class="bg-gradient-to-br from-emerald-600 to-teal-600 p-8 text-white text-center relative">
             <div class="flex justify-center mb-4">
-                <div class="p-3 bg-white/20 rounded-2xl backdrop-blur-sm shadow-inner">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path><path d="m9 12 2 2 4-4"></path></svg>
+                <div class="p-4 bg-white/20 rounded-3xl backdrop-blur-md">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="42" height="42" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                        <path d="m9 12 2 2 4-4"></path>
+                    </svg>
                 </div>
             </div>
-            <h1 class="text-2xl font-bold mb-1 tracking-wide">ระบบตรวจสอบสิทธิ สปสช.</h1>
-            <p class="text-emerald-50 text-sm font-medium opacity-90">Real-time Eligibility Check</p>
+            <h1 class="text-2xl font-bold tracking-wide">ระบบตรวจสอบสิทธิ สปสช.</h1>
+            <p class="text-emerald-100 text-sm mt-1">Real-time Eligibility Check</p>
         </div>
 
         <!-- Content -->
-        <div class="p-8 overflow-y-auto">
-            <div class="mb-8 text-center">
-                <h2 id="serviceName" class="text-slate-800 font-bold text-lg leading-tight mb-3 transition-all">
-                    กำลังตรวจสอบ...
+        <div class="p-8">
+            <div class="text-center mb-8">
+                <h2 id="serviceName" class="text-slate-800 font-semibold text-xl leading-tight min-h-[3.5rem]">
+                    กำลังโหลด...
                 </h2>
-                <span class="inline-block px-4 py-1.5 bg-slate-100 text-slate-600 text-xs font-bold rounded-full border border-slate-200">
+                <div id="serviceCode" class="inline-block px-5 py-1 bg-slate-100 text-slate-600 text-sm font-bold rounded-2xl mt-2">
                     รหัส: PG0190010
-                </span>
-            </div>
-
-            <!-- กล่องแสดงสถานะ -->
-            <div class="mb-8 relative min-h-[160px] flex items-center justify-center">
-                <!-- โชว์ Loading เฉพาะตอนเปิดเว็บครั้งแรกเท่านั้น -->
-                <div id="firstLoadingIndicator" class="flex flex-col items-center justify-center absolute inset-0 z-10 bg-white">
-                    <svg class="spin text-emerald-500 mb-4" xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-6.219-8.56"></path></svg>
-                    <p class="text-slate-400 text-sm font-medium">กำลังโหลดข้อมูลครั้งแรก...</p>
-                </div>
-
-                <!-- ป้ายสถานะ -->
-                <div id="statusBadge" class="hidden flex-col items-center justify-center gap-4 py-10 px-6 rounded-[2rem] border-2 shadow-sm w-full transition-all duration-500">
-                    <div id="statusIcon" class="transition-transform duration-300 transform scale-100"></div>
-                    <span id="statusText" class="text-4xl font-extrabold tracking-tight transition-colors duration-300"></span>
                 </div>
             </div>
 
-            <!-- กล่องแจ้งเตือน Error -->
-            <div id="errorWrapper" class="hidden mb-6 p-4 bg-rose-50 text-rose-800 rounded-2xl text-sm border border-rose-200 flex items-start gap-3">
-                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="shrink-0 mt-0.5"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
-                <p id="errorText" class="font-medium leading-relaxed"></p>
+            <!-- Status Area -->
+            <div id="statusContainer" class="min-h-[260px] flex flex-col items-center justify-center rounded-3xl transition-all duration-700">
+                <!-- Loading -->
+                <div id="loading" class="flex flex-col items-center">
+                    <svg class="spin text-emerald-500 w-16 h-16 mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+                    </svg>
+                    <p class="text-slate-400 font-medium">กำลังตรวจสอบสิทธิ์...</p>
+                </div>
+
+                <!-- Result -->
+                <div id="result" class="hidden flex-col items-center justify-center w-full">
+                    <div id="statusIcon" class="mb-6"></div>
+                    <div id="remainingNumber" class="text-7xl font-bold tracking-tighter pulse"></div>
+                    <div id="remainingText" class="text-2xl font-semibold mt-1"></div>
+                    <div id="statusLabel" class="mt-4 text-sm font-medium px-6 py-2 rounded-2xl"></div>
+                </div>
             </div>
 
-            <!-- Footer & Controls -->
-            <div class="flex items-center justify-between mt-4 pt-6 border-t border-slate-100 shrink-0">
-                <div class="text-slate-400 text-xs font-medium flex items-center gap-1.5">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
-                    อัปเดต: <span id="lastUpdated">-</span>
+            <!-- Error -->
+            <div id="errorBox" class="hidden mt-6 p-5 bg-rose-50 border border-rose-200 rounded-2xl text-rose-700 text-sm">
+                <div class="flex items-start gap-3">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                    </svg>
+                    <div>
+                        <p id="errorMessage" class="font-medium"></p>
+                        <button onclick="manualRetry()" class="mt-3 text-rose-600 hover:text-rose-700 font-semibold text-xs underline">ลองใหม่ (Retry)</button>
+                    </div>
                 </div>
-                <button onclick="fetchData(true)" id="refreshBtn" class="flex items-center gap-2 px-6 py-2.5 bg-slate-800 text-white rounded-xl text-sm font-semibold hover:bg-slate-700 active:scale-95 transition-all shadow-md">
-                    <svg id="refreshIcon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path><path d="M3 3v5h5"></path></svg>
+            </div>
+
+            <!-- Footer -->
+            <div class="flex justify-between items-center mt-8 pt-6 border-t border-slate-100 text-xs text-slate-400">
+                <div>อัปเดตเมื่อ: <span id="lastUpdated" class="font-medium text-slate-500">-</span></div>
+                <button onclick="manualRefresh()" id="refreshBtn"
+                        class="flex items-center gap-2 px-5 py-2.5 bg-slate-800 hover:bg-slate-700 text-white rounded-2xl text-sm font-semibold transition-all active:scale-95">
+                    <svg id="refreshIcon" xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.058 11H1M12 3v2m0 16v2m9-9H15" />
+                    </svg>
                     รีเฟรช
                 </button>
             </div>
         </div>
     </div>
 
+    <!-- Toast -->
+    <div id="toast" class="hidden fixed bottom-6 left-1/2 -translate-x-1/2 bg-slate-800 text-white text-sm px-6 py-3 rounded-2xl shadow-2xl flex items-center gap-2 toast">
+        <span id="toastText"></span>
+    </div>
+
     <script>
-        const targetServiceCode = 'PG0190010';
-        let isFirstLoad = true;
-        
-        // ฟังก์ชันดึงข้อมูล โดยมีพารามิเตอร์ isManual เผื่อกดปุ่มรีเฟรชเอง
+        let retryCount = 0;
+        const MAX_RETRY = 3;
+        let autoInterval = null;
+        let currentCode = 'PG0190010';
+
+        // ดึงรหัสจาก URL (รองรับ ?code=XXXXXXX)
+        function getServiceCode() {
+            const params = new URLSearchParams(window.location.search);
+            return params.get('code') || 'PG0190010';
+        }
+
+        function showToast(message, type = 'success') {
+            const toast = document.getElementById('toast');
+            const text = document.getElementById('toastText');
+            text.textContent = message;
+            toast.classList.remove('hidden', 'bg-emerald-600', 'bg-rose-600');
+            toast.classList.add(type === 'success' ? 'bg-emerald-600' : 'bg-rose-600');
+            setTimeout(() => toast.classList.add('hidden'), 2500);
+        }
+
         async function fetchData(isManual = false) {
-            // หมุนปุ่มรีเฟรชเงียบๆ ไม่ว่าจะเป็นการโหลดแบบไหน
-            document.getElementById('refreshIcon').classList.add('spin');
-            document.getElementById('refreshBtn').disabled = true;
-            document.getElementById('errorWrapper').classList.add('hidden');
+            const refreshBtn = document.getElementById('refreshBtn');
+            const refreshIcon = document.getElementById('refreshIcon');
+            refreshBtn.disabled = true;
+            refreshIcon.classList.add('spin');
+
+            document.getElementById('errorBox').classList.add('hidden');
 
             try {
                 const response = await fetch('/api/nhso');
+                if (!response.ok) throw new Error('เซิร์ฟเวอร์ตอบกลับไม่สำเร็จ');
+                
                 const data = await response.json();
-
-                if (data.error) throw new Error(data.error);
-
-                let servicesArray = [];
-                if (Array.isArray(data)) servicesArray = data;
-                else if (data.data && Array.isArray(data.data)) servicesArray = data.data;
-                else if (data.services && Array.isArray(data.services)) servicesArray = data.services;
+                
+                // รองรับหลายรูปแบบ JSON
+                let services = [];
+                if (Array.isArray(data)) services = data;
+                else if (data.data) services = Array.isArray(data.data) ? data.data : [];
+                else if (data.services) services = Array.isArray(data.services) ? data.services : [];
                 else {
                     for (let key in data) {
-                        if (Array.isArray(data[key])) { servicesArray = data[key]; break; }
+                        if (Array.isArray(data[key])) { services = data[key]; break; }
                     }
                 }
 
-                const targetService = servicesArray.find(s => {
-                    const code = (s.service_code || s.code || s.id || s.sub_service_code || "").toString().toUpperCase();
-                    return code.includes(targetServiceCode);
+                currentCode = getServiceCode();
+                const target = services.find(s => {
+                    const code = (s.service_code || s.code || s.id || s.sub_service_code || '').toString().toUpperCase();
+                    return code.includes(currentCode.toUpperCase());
                 });
 
-                const badge = document.getElementById('statusBadge');
-                const iconContainer = document.getElementById('statusIcon');
-                const textContainer = document.getElementById('statusText');
+                document.getElementById('serviceCode').textContent = `รหัส: ${currentCode}`;
 
-                const name = targetService?.service_code_desc || targetService?.service_name || targetService?.name || 'บริการนวด อบ ประคบ ในกลุ่มโรคอื่น';
-                document.getElementById('serviceName').innerText = name;
+                if (!target) throw new Error('ไม่พบข้อมูลบริการนี้');
 
-                let hasRight = false;
-                if (targetService) {
-                    const countResult = parseInt(targetService.countResult || 0);
-                    if (countResult > 0 || targetService.countResult === undefined) {
-                        hasRight = true;
+                const name = target.service_code_desc || target.service_name || target.name || 'บริการนวด อบ ประคบ';
+                document.getElementById('serviceName').textContent = name;
+
+                // ดึงจำนวนสิทธิ์ (รองรับหลายชื่อฟิลด์)
+                let remaining = 0;
+                const possibleFields = ['countResult', 'remaining', 'quota', 'limit', 'count', 'rights'];
+                for (let field of possibleFields) {
+                    if (target[field] !== undefined) {
+                        remaining = parseInt(target[field]) || 0;
+                        break;
                     }
                 }
 
-                if (hasRight) {
-                    // เปลี่ยนเป็นสีเขียว เนียนๆ ไม่กระพริบ
-                    badge.className = "flex flex-col items-center justify-center gap-4 py-10 px-6 bg-emerald-50 rounded-[2rem] border-2 border-emerald-200 shadow-sm w-full transition-all duration-500";
-                    iconContainer.innerHTML = '<div class="bg-emerald-500 rounded-full p-3 shadow-md shadow-emerald-500/30"><svg class="w-12 h-12 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7" /></svg></div>';
-                    textContainer.innerText = "มีสิทธิ์";
-                    textContainer.className = "text-4xl font-extrabold text-emerald-600 tracking-tight transition-colors duration-300";
+                // แสดงผล
+                const resultDiv = document.getElementById('result');
+                const loadingDiv = document.getElementById('loading');
+                loadingDiv.classList.add('hidden');
+                resultDiv.classList.remove('hidden');
+
+                const numberEl = document.getElementById('remainingNumber');
+                const textEl = document.getElementById('remainingText');
+                const labelEl = document.getElementById('statusLabel');
+                const iconEl = document.getElementById('statusIcon');
+
+                numberEl.textContent = remaining;
+
+                if (remaining > 0) {
+                    // มีสิทธิ์
+                    const isLow = remaining <= 2;
+                    const color = isLow ? 'amber' : 'emerald';
+                    
+                    resultDiv.className = `flex flex-col items-center justify-center w-full bg-\( {color}-50 border-2 border- \){color}-200 rounded-3xl py-8`;
+                    iconEl.innerHTML = `<div class="w-20 h-20 bg-${color}-500 rounded-2xl flex items-center justify-center shadow-lg"><svg xmlns="http://www.w3.org/2000/svg" class="w-12 h-12 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" /></svg></div>`;
+                    
+                    textEl.textContent = 'สิทธิ์คงเหลือ';
+                    textEl.className = `text-2xl font-semibold text-${color}-700`;
+                    labelEl.textContent = `${remaining} ครั้ง`;
+                    labelEl.className = `mt-4 text-sm font-medium px-6 py-2 rounded-2xl bg-\( {color}-100 text- \){color}-700`;
+                    
+                    numberEl.className = `text-7xl font-bold tracking-tighter text-${color}-600 pulse`;
                 } else {
-                    // เปลี่ยนเป็นสีแดง เนียนๆ ไม่กระพริบ
-                    badge.className = "flex flex-col items-center justify-center gap-4 py-10 px-6 bg-rose-50 rounded-[2rem] border-2 border-rose-200 shadow-sm w-full transition-all duration-500";
-                    iconContainer.innerHTML = '<div class="bg-rose-500 rounded-full p-3 shadow-md shadow-rose-500/30"><svg class="w-12 h-12 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M6 18L18 6M6 6l12 12" /></svg></div>';
-                    textContainer.innerText = "สิทธิหมด";
-                    textContainer.className = "text-4xl font-extrabold text-rose-600 tracking-tight transition-colors duration-300";
+                    // สิทธิหมด
+                    resultDiv.className = 'flex flex-col items-center justify-center w-full bg-rose-50 border-2 border-rose-200 rounded-3xl py-8';
+                    iconEl.innerHTML = `<div class="w-20 h-20 bg-rose-500 rounded-2xl flex items-center justify-center shadow-lg"><svg xmlns="http://www.w3.org/2000/svg" class="w-12 h-12 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6L18 18" /></svg></div>`;
+                    
+                    textEl.textContent = 'สิทธิหมด';
+                    textEl.className = 'text-2xl font-semibold text-rose-700';
+                    labelEl.textContent = 'ไม่สามารถใช้บริการได้';
+                    labelEl.className = 'mt-4 text-sm font-medium px-6 py-2 rounded-2xl bg-rose-100 text-rose-700';
+                    
+                    numberEl.className = 'text-7xl font-bold tracking-tighter text-rose-600';
                 }
 
-                document.getElementById('lastUpdated').innerText = new Date().toLocaleTimeString('th-TH');
+                document.getElementById('lastUpdated').textContent = new Date().toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+                showToast(remaining > 0 ? `เหลือ ${remaining} ครั้ง` : 'สิทธิหมดแล้ว', remaining > 0 ? 'success' : 'error');
 
-                // ถ้าเป็นการโหลดครั้งแรก ให้ซ่อนตัวโหลดใหญ่ตรงกลาง แล้วโชว์ป้าย
-                if (isFirstLoad) {
-                    document.getElementById('firstLoadingIndicator').classList.add('hidden');
-                    badge.classList.remove('hidden');
-                    badge.classList.add('flex');
-                    isFirstLoad = false;
+                retryCount = 0; // รีเซ็ต retry เมื่อสำเร็จ
+
+            } catch (err) {
+                if (retryCount < MAX_RETRY) {
+                    retryCount++;
+                    showToast(`เชื่อมต่อล้มเหลว กำลังลองใหม่ (\( {retryCount}/ \){MAX_RETRY})`, 'error');
+                    setTimeout(() => fetchData(isManual), 800);
+                    return;
                 }
-
-            } catch (error) {
-                // ถ้าพัง โชว์ Error แต่ไม่ลบป้ายสถานะเดิมทิ้ง
-                document.getElementById('errorWrapper').classList.remove('hidden');
-                document.getElementById('errorText').innerText = "เชื่อมต่อระบบขัดข้อง: " + error.message;
                 
-                if (isFirstLoad) {
-                    document.getElementById('firstLoadingIndicator').classList.add('hidden');
-                }
+                document.getElementById('loading').classList.add('hidden');
+                document.getElementById('errorBox').classList.remove('hidden');
+                document.getElementById('errorMessage').textContent = err.message || 'ไม่สามารถเชื่อมต่อระบบได้';
+                showToast('เชื่อมต่อล้มเหลว กรุณาลองใหม่อีกครั้ง', 'error');
             } finally {
-                // หยุดหมุนปุ่มรีเฟรช
-                document.getElementById('refreshIcon').classList.remove('spin');
-                document.getElementById('refreshBtn').disabled = false;
+                refreshBtn.disabled = false;
+                refreshIcon.classList.remove('spin');
             }
         }
 
+        function manualRefresh() {
+            document.getElementById('loading').classList.remove('hidden');
+            document.getElementById('result').classList.add('hidden');
+            fetchData(true);
+        }
+
+        function manualRetry() {
+            document.getElementById('errorBox').classList.add('hidden');
+            document.getElementById('loading').classList.remove('hidden');
+            retryCount = 0;
+            fetchData(true);
+        }
+
+        // เริ่มต้น
         window.onload = () => {
-            fetchData(); // ดึงครั้งแรกตอนเปิดหน้า
-            
-            // ตั้งเวลาเช็คข้อมูลใหม่อัตโนมัติ ทุกๆ 30 วินาที (30000 ms) แบบเงียบๆ
-            setInterval(() => {
-                fetchData(false);
-            }, 30000); 
+            currentCode = getServiceCode();
+            fetchData();
+
+            // Auto refresh ทุก 60 วินาที
+            if (autoInterval) clearInterval(autoInterval);
+            autoInterval = setInterval(() => fetchData(), 60000);
         };
     </script>
 </body>
 </html>
-
-
